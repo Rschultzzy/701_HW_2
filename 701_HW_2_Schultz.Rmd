@@ -1,0 +1,126 @@
+---
+title: "701_HW_2"
+author: "Robert Schultz"
+date: "2/15/2022"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(xml2)
+library(rvest)
+library(survey)
+library(magrittr)
+library(scales)
+library(ggpubr)
+library(dplyr)
+library(survey)
+
+```
+
+```{r}
+library(haven)
+chapter_exercises_ess6rf <- read_sas("~/Downloads/chapter_exercises_ess6rf.sas7bdat", 
+    NULL)
+head(chapter_exercises_ess6rf)
+```
+```{r}
+HW2 <-chapter_exercises_ess6rf
+HW2$STFLIFE
+```
+
+```{r}
+S <-ggplot(HW2, aes(STFLIFE, weight = PSPWGHT)) + geom_histogram()
+S
+```
+```{r}
+T <- ggplot(HW2, aes(TRSTPLC, weight = PSPWGHT)) + geom_histogram()
+T
+```
+
+```{r}
+library("haven")
+library("survey")
+library("jtools")
+library("remotes")
+library(plotrix)
+summary(HW2$STFLIFE)
+std.error(HW2$STFLIFE)
+length(HW2$STFLIFE)
+```
+```{r}
+summary(HW2$TRSTPLC)
+std.error(HW2$TRSTPLC)
+length(HW2$TRSTPLC)
+```
+
+```{r}
+#5.2c
+library(survey)
+srs.dsgn = svydesign(ids = ~1, weights = ~PSPWGHT, data = HW2)
+svydesign(ids = ~1, weights = ~1, stratum = ~stratify, data = HW2)
+
+```
+```{r}
+HW2 <- subset(HW2, !is.na(STFLIFE))
+HW2 <- subset(HW2, !is.na(TRSTPLC))
+length(HW2$STFLIFE)
+length(HW2$TRSTPLC)
+range(HW2$STFLIFE)
+range(HW2$TRSTPLC)
+dstrat<-svydesign(id=~1,strata=~stratify, weights=~PSPWGHT, data=HW2)
+svymean(~STFLIFE, dstrat,deff='replace')
+svymean(~TRSTPLC, dstrat, deff='replace')
+```
+
+```{r}
+dstrat<-svydesign(id=~1, weights=~PSPWGHT, data=HW2)
+svymean(~STFLIFE, dstrat,deff='replace')
+svymean(~TRSTPLC, dstrat, deff='replace')
+```
+
+```{r}
+dstrat<-svydesign(id=~1,strata=~stratify, weights=~PSPWGHT, cluster = data=HW2)
+svymean(~STFLIFE, dstrat,deff='replace')
+svymean(~TRSTPLC, dstrat, deff='replace')
+```
+
+
+```{r}
+dsgn.srs= svydesign(ids = ~1, weights = ~PSPWGHT, stratum = ~stratify, data = HW2)
+svymean(~STFLIFE, dsgn.srs,deff='replace',na.rm = T)
+```
+```{r}
+dstrat<-svydesign(id=~psu,strata=~stratify, weights=~PSPWGHT, data=HW2)
+svymean(~STFLIFE, dstrat,deff='replace')
+svymean(~TRSTPLC, dstrat, deff='replace')
+```
+
+```{r}
+dstrat<-svydesign(id=~psu,strata=~stratify, weights=~PSPWGHT, data=HW2)
+STF <-svymean(~STFLIFE, dstrat,deff='replace')
+TRST <-svymean(~TRSTPLC, dstrat, deff='replace')
+
+confint(STF)
+confint(TRST)
+```
+
+```{r}
+library(survey)
+HW2 <- subset(HW2, !is.na(voted_lastelection))
+length(HW2$voted_lastelection)
+dstrat<-svydesign(id=~psu,strata=~stratify, weights=~PSPWGHT, data=HW2)
+svytable(~voted_lastelection, design = dstrat)
+svymean(~voted_lastelection, design = dstrat)
+confint(svymean(~voted_lastelection, design = dstrat))
+svyciprop(~I(voted_lastelection==1), dstrat, method="likelihood")
+```
+
+
+
